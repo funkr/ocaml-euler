@@ -1,0 +1,10 @@
+(env
+ (dev
+  (flags :standard -w -32))
+ (release
+  (flags :standard)))
+
+(executable
+ (public_name euler)
+ (name main)
+ (libraries euler unix seq))

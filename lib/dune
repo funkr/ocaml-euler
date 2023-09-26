@@ -1,0 +1,3 @@
+(library
+ (name euler_lib)
+ (public_name euler))
