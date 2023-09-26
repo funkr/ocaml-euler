@@ -24,6 +24,7 @@ let rec choose k list : int list list =
         let without_x = choose k xs in
         with_x @ without_x
 
+(* Quite costly operation *)
 let rec digits_of_int n =
   if n < 10 then [ n ] else (n mod 10) :: digits_of_int (n / 10)
 
