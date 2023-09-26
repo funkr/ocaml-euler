@@ -1,5 +1,5 @@
 open OUnit2
-open Euler_lib
+open Eulerlib
 
 let is_prime_1 _ = assert_equal false (is_prime 1)
 let is_prime_2 _ = assert_equal true (is_prime 2)
