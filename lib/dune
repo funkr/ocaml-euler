@@ -1,3 +1,4 @@
 (library
  (name eulerlib)
- (public_name euler))
+ (public_name euler)
+ (libraries bignum))

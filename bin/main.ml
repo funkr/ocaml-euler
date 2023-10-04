@@ -1,5 +1,6 @@
 open Euler51
 open Euler52
+open Euler53
 open Printf
 
 let () =
@@ -11,6 +12,7 @@ let () =
     match euler_nr with
     | 51 -> euler51
     | 52 -> euler52
+    | 53 -> euler53
     | _ -> failwith "not (yet) programmed!"
   in
 

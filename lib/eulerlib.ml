@@ -44,3 +44,22 @@ let is_prime (n : int) : bool =
       else true
     in
     step n r f
+
+(* faculty function from https://rosettacode.org/wiki/Factorial#OCaml *)
+let factorial (n : Bignum.t) : Bignum.t =
+  let rec loop (i : Bignum.t) (acc : Bignum.t) =
+    if i > n then acc
+    else loop (Bignum.( + ) i (Bignum.of_int 1)) (Bignum.( * ) acc i)
+  in
+  loop (Bignum.of_int 1) (Bignum.of_int 1)
+
+let binomial n k =
+  let rec aux n k acc =
+    if k = 0 then acc else aux (n - 1) (k - 1) (acc * n / k)
+  in
+  aux n k 1
+
+(* n over r = n!/(r!(n−r)!) *)
+let combination (n : Bignum.t) (r : Bignum.t) =
+  Bignum.( / ) (factorial n)
+    (Bignum.( * ) (factorial r) (factorial (Bignum.( - ) n r)))
