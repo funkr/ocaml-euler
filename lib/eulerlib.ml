@@ -90,50 +90,87 @@ module PascalTriangle = struct
     _get_binom_val !pascal_triangle n k
 end
 
-(*
-                            module PascalTriangle1 = struct
-                            (* Represents Pascal's Triangle as a list of rows, each row is an int array *)
-                            type t = int array list
+module type T = sig
+  type t
 
-                            (* Calculate the value at row `n` and position `k` in Pascal's Triangle *)
-                            let get_value (pt : t) n k : int =
-                            let pt_length = List.length pt in
-                            if n < 0 || k < 0 || n >= pt_length then
-                            raise (Invalid_argument "Invalid row or position");
+  val zero : t
+  val one : t
+  val ( + ) : t -> t -> t
+end
 
-                            pt
-                            |> List.nth (pt_length - n - 1)  (* Get the corresponding row *)
-                            |> Array.get k                   (* Get the value at position `k` *)
+module type BINOMIAL = sig
+  type t
 
-                            (* Generate the next row of Pascal's Triangle based on the previous row *)
-                            let generate_next_row (prev_row : int array) : int array =
-                            let row_length = Array.length prev_row in
-                            let next_row = Array.make (row_length + 1) 1 in
-                            for i = 1 to row_length - 1 do
-                            next_row.(i) <- prev_row.(i - 1) + prev_row.(i);
-                            done;
-                            next_row
+  val cNr : int -> int -> t
+end
 
-                            (* Generate Pascal's Triangle up to row `n` *)
-                            let generate_triangle (n : int) : t =
-                            let rec generate_rows (rows : t) (count : int) : t =
-                            if count >= n then rows
-                            else
-                            let next_row = generate_next_row (List.hd rows) in
-                            generate_rows (next_row :: rows) (count + 1)
-                            in
-                            if n <= 0 then
-                            []
-                            else
-                            [[|1|]] |> generate_rows [] 1
+module PT (M : BINOMIAL) = struct
+  type t = M.t
 
-                            (* Calculate the combination C(n, k) *)
-                            let combination (n : int) (k : int) : int =
-                            if n < k || n > 65 then
-                            raise (Invalid_argument "Invalid values for n and k");
+  let cNr = M.cNr
+end
 
-                            let triangle = generate_triangle (n + 1) in
-                            get_value triangle n k
-                            end
+module PascalTriangleGeneric (M : T) = struct
+  type t = M.t
 
-                           *)
+  let zero = M.zero
+  let one = M.one
+  let ( + ) = M.( + )
+  let pascal_triangle = ref [ [| one |] ]
+
+  let _get_row_val row (i : int) =
+    if i = 0 || Array.length row = i then one
+    else Array.get row (Int.sub i 1) + Array.get row i
+
+  let rec grow_pascal_triangle pt n =
+    let pt_length = List.length pt in
+    if pt_length >= n then pt
+    else
+      let prev_row = List.hd pt in
+      let new_row =
+        Array.init (Int.add pt_length 1) (fun i -> _get_row_val prev_row i)
+      in
+      grow_pascal_triangle (new_row :: pt) n
+
+  let get_binom_val pt n k : t =
+    let ptl = List.length pt - 1 in
+    Array.get (List.nth pt (ptl - n)) k
+
+  let cNr n k : t =
+    if n < k then raise (Invalid_argument "n<k not allowed");
+    pascal_triangle := grow_pascal_triangle !pascal_triangle (Int.add n 1);
+    get_binom_val !pascal_triangle n k
+end
+
+(* Type Int *)
+module IntPascTri : T with type t = int = struct
+  type t = int
+
+  let zero = 0
+  let one = 1
+  let ( + ) = Stdlib.( + )
+end
+
+module BinomialInt = PT (PascalTriangleGeneric (IntPascTri))
+
+(* Type Float *)
+module FloatPascTri : T with type t = float = struct
+  type t = float
+
+  let zero = 0.0
+  let one = 1.0
+  let ( + ) = Stdlib.( +. )
+end
+
+module BinomialFloat = PT (PascalTriangleGeneric (FloatPascTri))
+
+(* Type Bignum *)
+module BignumPascTri : T with type t = Bignum.t = struct
+  type t = Bignum.t
+
+  let zero = Bignum.zero
+  let one = Bignum.one
+  let ( + ) = Bignum.( + )
+end
+
+module BinomialBignum = PT (PascalTriangleGeneric (BignumPascTri))
