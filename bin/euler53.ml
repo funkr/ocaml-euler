@@ -28,8 +28,10 @@ let euler53 =
     for r = 1 to n do
       if not !break then
         if
-          let open Bignum in
-          combination (of_int n) (of_int r) > of_int 1000000
+          (* let open Bignum in *)
+          (* combination (of_int n) (of_int r) > of_int 1000000 *)
+          (* BinomialInt.cNr n r > 1000000 *)
+          BinomialFloat.cNr n r > 1000000.
         then (
           count := !count + (n - (2 * r)) + 1;
           break := true)
