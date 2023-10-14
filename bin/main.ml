@@ -1,6 +1,7 @@
 open Euler51
 open Euler52
 open Euler53
+open Euler54
 open Printf
 
 let () =
@@ -13,6 +14,7 @@ let () =
     | 51 -> euler51
     | 52 -> euler52
     | 53 -> euler53
+    | 54 -> euler54
     | _ -> failwith "not (yet) programmed!"
   in
 
