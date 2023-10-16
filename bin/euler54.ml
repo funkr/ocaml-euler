@@ -170,8 +170,8 @@ let is_straight_flush (cards : Card.t array) : bool =
                  (fun (r:Card.rank) -> c.rank = r && c.suit = _sf_suit)
                  _flush) 
 
-(** Four cards of the same value. *)
-let is_four_of_a_kind (cards : Card.t array) : bool =
+(** n cards of the same value. *)
+let is_n_of_a_kind (n:int) (cards : Card.t array) : bool =
     cards
     |> Array.fold_left
       (fun counts (card :Card.t) ->
@@ -179,9 +179,31 @@ let is_four_of_a_kind (cards : Card.t array) : bool =
         counts.(rank_int) <- counts.(rank_int) + 1;
         counts)
         (Array.make 13 0)
-  |> Array.exists (fun count -> count = 4)
+  |> Array.exists (fun count -> count = n)
 
+(** n cards of the same suit. *)
+let is_n_of_a_suit (n:int) (cards : Card.t array) : bool =
+    let _suit_counts = Array.make 4 0 in
+    Array.iter (fun (c:Card.t) -> _suit_counts.(Card.suit_to_int c.suit) <- (_suit_counts.(Card.suit_to_int c.suit) + 1) ) cards;
+    Array.exists (fun c -> c=n) _suit_counts
 
+(** All cards are consecutive values. *)
+let is_straight (cards: Card.t array) =
+    let _sf_suit = (Array.get cards 0).suit in
+    let start = find_minimum cards in
+    let _flush =
+      Card.rank_order |> List.to_seq
+      |> Seq.drop_while (fun c -> c <> start.rank)
+      |> Seq.take 5 |> List.of_seq in
+
+    cards
+    |> Array.for_all
+         (fun (c:Card.t) ->
+               List.exists
+                 (fun (r:Card.rank) -> c.rank = r)
+                 _flush)
+
+(** Three of a kind and a pair. *)
 
 let euler54 = 
 
@@ -198,5 +220,5 @@ let euler54 =
                 {Card.rank = Ten  ; suit= Diamonds} |] in
 
   Array.sort Card.compare_cards rf;
-  let b = is_four_of_a_kind fk in
+  let b = is_n_of_a_kind 4 fk in
   Printf.sprintf "%b" b
