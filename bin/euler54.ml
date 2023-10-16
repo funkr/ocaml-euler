@@ -108,6 +108,29 @@ let compare_cards card1 card2 =
   let ( < ) card_left card_right=
     compare_cards card_left card_right < 0
 
+
+  let suit_to_int (s:suit) =
+    match s with
+    | Hearts -> 0
+    | Diamonds -> 1
+    | Clubs -> 2
+    | Spades -> 3
+
+  let rank_to_int (r:rank) =
+    match r with
+    | Two -> 0
+    | Three -> 1
+    | Four -> 2
+    | Five -> 3
+    | Six -> 4
+    | Seven -> 5
+    | Eight -> 6
+    | Nine -> 7
+    | Ten -> 8
+    | Jack -> 9
+    | Queen -> 10
+    | King -> 11
+    | Ace -> 12
 end
 
 let find_minimum arr =
@@ -137,7 +160,7 @@ let is_straight_flush (cards : Card.t array) : bool =
   else
     let _flush =
       Card.rank_order |> List.to_seq
-      |> Seq.drop_while (fun (c : Card.rank) -> c <> start.rank)
+      |> Seq.drop_while (fun c -> c <> start.rank)
       |> Seq.take 5 |> List.of_seq in
     
     cards
@@ -146,8 +169,15 @@ let is_straight_flush (cards : Card.t array) : bool =
                List.exists
                  (fun (r:Card.rank) -> c.rank = r && c.suit = _sf_suit)
                  _flush) 
+
+(** Four cards of the same value. *)
+let is_four_of_a_suit (cards : Card.t array) : bool =
+  let _rank_counts = Array.make 13 0 in
+  Array.iter (fun (c:Card.t) -> _rank_counts.(Card.rank_to_int c.rank) <- (_rank_counts.(Card.rank_to_int c.rank) + 1) ) cards;
+  Array.exists (fun c -> c=4) _rank_counts
   
-let euler54 =
+  
+let euler54 = 
 
   let rf = [| {Card.rank = Ten   ; suit= Clubs};
               {Card.rank = Queen ; suit= Hearts};
