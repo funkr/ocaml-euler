@@ -171,12 +171,18 @@ let is_straight_flush (cards : Card.t array) : bool =
                  _flush) 
 
 (** Four cards of the same value. *)
-let is_four_of_a_suit (cards : Card.t array) : bool =
-  let _rank_counts = Array.make 13 0 in
-  Array.iter (fun (c:Card.t) -> _rank_counts.(Card.rank_to_int c.rank) <- (_rank_counts.(Card.rank_to_int c.rank) + 1) ) cards;
-  Array.exists (fun c -> c=4) _rank_counts
-  
-  
+let is_four_of_a_kind (cards : Card.t array) : bool =
+    cards
+    |> Array.fold_left
+      (fun counts (card :Card.t) ->
+        let rank_int = Card.rank_to_int card.rank in
+        counts.(rank_int) <- counts.(rank_int) + 1;
+        counts)
+        (Array.make 13 0)
+  |> Array.exists (fun count -> count = 4)
+
+
+
 let euler54 = 
 
   let rf = [| {Card.rank = Ten   ; suit= Clubs};
@@ -185,7 +191,12 @@ let euler54 =
               {Card.rank = King  ; suit= Hearts};
               {Card.rank = Nine  ; suit= Hearts} |] in
 
-  
+    let fk = [| {Card.rank = Ten   ; suit= Clubs};
+                {Card.rank = Ten   ; suit= Hearts};
+                {Card.rank = Jack  ; suit= Hearts};
+                {Card.rank = Ten  ; suit= Spades};
+                {Card.rank = Ten  ; suit= Diamonds} |] in
+
   Array.sort Card.compare_cards rf;
-  let b = is_straight_flush rf in
+  let b = is_four_of_a_kind fk in
   Printf.sprintf "%b" b
