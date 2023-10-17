@@ -60,34 +60,34 @@ How many hands does Player 1 win?
 (* compare two hands *)
 
 module Card = struct
-type suit = Hearts | Diamonds | Clubs | Spades
+  type suit = Hearts | Diamonds | Clubs | Spades
 
-type rank = Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten | Jack | Queen | King | Ace
+  type rank = Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten | Jack | Queen | King | Ace
 
-type t = { rank: rank; suit: suit }
+  type t = { rank: rank; suit: suit }
 
-let rank_order = [
-    Two; Three; Four; Five; Six; Seven; Eight; Nine; Ten; Jack; Queen; King; Ace
-  ] 
+  let rank_order = [
+      Two; Three; Four; Five; Six; Seven; Eight; Nine; Ten; Jack; Queen; King; Ace
+    ] 
   
-let compare_cards card1 card2 =
-  
-  let suit_order = [
-    Hearts; Diamonds; Clubs; Spades
-  ] in
-  let compare_rank card1 card2 =
-    let rank1 = List.find_opt (fun c -> card1.rank=c) rank_order in
-    let rank2 = List.find_opt (fun c -> card2.rank=c) rank_order in
-    compare rank1 rank2
-  in
-  let compare_suit card1 card2 =
-    let suit1 = List.find_opt (fun c -> card1.suit=c) suit_order in
-    let suit2 = List.find_opt (fun c -> card2.suit=c) suit_order in
-    compare suit1 suit2
-  in
-  match compare_rank card1 card2 with
-  | 0 -> compare_suit card1 card2
-  | result -> result
+  let compare_cards card1 card2 =
+    
+    let suit_order = [
+        Hearts; Diamonds; Clubs; Spades
+      ] in
+    let compare_rank card1 card2 =
+      let rank1 = List.find_opt (fun c -> card1.rank=c) rank_order in
+      let rank2 = List.find_opt (fun c -> card2.rank=c) rank_order in
+      compare rank1 rank2
+    in
+    let compare_suit card1 card2 =
+      let suit1 = List.find_opt (fun c -> card1.suit=c) suit_order in
+      let suit2 = List.find_opt (fun c -> card2.suit=c) suit_order in
+      compare suit1 suit2
+    in
+    match compare_rank card1 card2 with
+    | 0 -> compare_suit card1 card2
+    | result -> result
 
 
   let ( = ) card_left card_right=
@@ -135,8 +135,8 @@ end
 
 let find_minimum arr =
   Array.fold_left (fun min_element current_element ->
-    if current_element < min_element then current_element else min_element
-  ) arr.(0) arr
+      if current_element < min_element then current_element else min_element
+    ) arr.(0) arr
 
 
 let is_royal_flush  (cards : Card.t array) : bool =
@@ -144,10 +144,10 @@ let is_royal_flush  (cards : Card.t array) : bool =
   let _rf_suit = (Array.get cards 0).suit in
   cards
   |> Array.for_all
-             (fun (c:Card.t) ->
-               List.exists
-                 (fun (r:Card.rank) -> c.rank = r && c.suit = _rf_suit)
-                 [ Ten; Jack; Queen; King; Ace ]) 
+       (fun (c:Card.t) ->
+         List.exists
+           (fun (r:Card.rank) -> c.rank = r && c.suit = _rf_suit)
+           [ Ten; Jack; Queen; King; Ace ]) 
 
 
 (** All cards are consecutive values of same suit. *)
@@ -166,59 +166,82 @@ let is_straight_flush (cards : Card.t array) : bool =
     cards
     |> Array.for_all
          (fun (c:Card.t) ->
-               List.exists
-                 (fun (r:Card.rank) -> c.rank = r && c.suit = _sf_suit)
-                 _flush) 
+           List.exists
+             (fun (r:Card.rank) -> c.rank = r && c.suit = _sf_suit)
+             _flush) 
 
 (** n cards of the same value. *)
 let is_n_of_a_kind (n:int) (cards : Card.t array) : bool =
-    cards
-    |> Array.fold_left
-      (fun counts (card :Card.t) ->
-        let rank_int = Card.rank_to_int card.rank in
-        counts.(rank_int) <- counts.(rank_int) + 1;
-        counts)
-        (Array.make 13 0)
+  cards
+  |> Array.fold_left
+       (fun counts (card :Card.t) ->
+         let rank_int = Card.rank_to_int card.rank in
+         counts.(rank_int) <- counts.(rank_int) + 1;
+         counts)
+       (Array.make 13 0)
   |> Array.exists (fun count -> count = n)
 
 (** n cards of the same suit. *)
 let is_n_of_a_suit (n:int) (cards : Card.t array) : bool =
-    let _suit_counts = Array.make 4 0 in
-    Array.iter (fun (c:Card.t) -> _suit_counts.(Card.suit_to_int c.suit) <- (_suit_counts.(Card.suit_to_int c.suit) + 1) ) cards;
-    Array.exists (fun c -> c=n) _suit_counts
+  let _suit_counts = Array.make 4 0 in
+  Array.iter (fun (c:Card.t) -> _suit_counts.(Card.suit_to_int c.suit) <- (_suit_counts.(Card.suit_to_int c.suit) + 1) ) cards;
+  Array.exists (fun c -> c=n) _suit_counts
 
-(** All cards are consecutive values. *)
-let is_straight (cards: Card.t array) =
-    let _sf_suit = (Array.get cards 0).suit in
-    let start = find_minimum cards in
-    let _flush =
-      Card.rank_order |> List.to_seq
-      |> Seq.drop_while (fun c -> c <> start.rank)
-      |> Seq.take 5 |> List.of_seq in
 
-    cards
-    |> Array.for_all
-         (fun (c:Card.t) ->
-               List.exists
-                 (fun (r:Card.rank) -> c.rank = r)
-                 _flush)
+(** All cards are consecutive rank *)
+let is_flush (cards: Card.t array) =
+  let start = find_minimum cards in
+  let _flush =
+    Card.rank_order |> List.to_seq
+    |> Seq.drop_while (fun c -> c <> start.rank)
+    |> Seq.take 5 |> List.of_seq in
+
+  cards
+  |> Array.for_all
+       (fun (c:Card.t) ->
+         List.exists
+           (fun (r:Card.rank) -> c.rank = r)
+           _flush)
+
+
+let get_rank hand =
+  if is_royal_flush hand then 9, Some hand.(0).suit
+  else if  is_n_of_a_suit 5 hand && is_flush hand then 8, Some hand.(0).suit
+  else if is_n_of_a_kind 4 hand then 7, Some
+    else 7, Some Card.Spades
+
+      
+
+let judge _hand_a _hand_b = 1
+
+let score (hands_a: Card.t array) (hands_b: Card.t array) : int=
+  let result_a = get_rank hands_a in
+  let result_b = get_rank hands_b in
+  judge result_a result_b
 
 (** Three of a kind and a pair. *)
 
 let euler54 = 
 
-  let rf = [| {Card.rank = Ten   ; suit= Clubs};
-              {Card.rank = Queen ; suit= Hearts};
-              {Card.rank = Jack  ; suit= Hearts};
-              {Card.rank = King  ; suit= Hearts};
-              {Card.rank = Nine  ; suit= Hearts} |] in
+  let _rf = [| {Card.rank = Ten   ; suit= Clubs};
+               {Card.rank = Queen ; suit= Hearts};
+               {Card.rank = Jack  ; suit= Hearts};
+               {Card.rank = King  ; suit= Hearts};
+               {Card.rank = Nine  ; suit= Hearts} |] in
 
-    let fk = [| {Card.rank = Ten   ; suit= Clubs};
-                {Card.rank = Ten   ; suit= Hearts};
-                {Card.rank = Jack  ; suit= Hearts};
-                {Card.rank = Ten  ; suit= Spades};
-                {Card.rank = Ten  ; suit= Diamonds} |] in
+  let _flush = [| {Card.rank = Eight   ; suit= Clubs};
+                  {Card.rank = Ten ; suit= Hearts};
+                  {Card.rank = Six  ; suit= Hearts};
+                  {Card.rank = Nine  ; suit= Hearts};
+                  {Card.rank = Seven  ; suit= Hearts} |] in
+  
+  let _fk = [| {Card.rank = Ten   ; suit= Clubs};
+               {Card.rank = Ten   ; suit= Hearts};
+               {Card.rank = Jack  ; suit= Hearts};
+               {Card.rank = Ten  ; suit= Spades};
+               {Card.rank = Ten  ; suit= Diamonds} |] in
 
-  Array.sort Card.compare_cards rf;
-  let b = is_n_of_a_kind 4 fk in
+  _flush
+  |>Array.sort Card.compare_cards;
+  let b = is_n_of_a_suit 5 _flush in
   Printf.sprintf "%b" b
