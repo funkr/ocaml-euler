@@ -27,6 +27,52 @@ the first example is 4994.
 
 How many Lychrel numbers are there below ten-thousand?
 
-NOTE: Wording was modified slightly on 24 April 2007 to emphasise the theoretical nature of Lychrel numbers.
+NOTE: Wording was modified slightly on 24 April 2007 to emphasise the
+      theoretical nature of Lychrel numbers.
 
 *)
+
+let reverse_number n =
+  let rec extract_digits acc n =
+    if n = 0 then
+      acc
+    else
+      let digit = n mod 10 in
+      extract_digits (digit :: acc) (n / 10)
+  in
+
+  let rec compose_number acc = function
+    | [] -> acc
+    | digit :: rest ->
+      let new_acc = acc * 10 + digit in
+      compose_number new_acc rest
+  in
+
+  let digits = extract_digits [] n in
+
+  compose_number 0 (List.rev digits)
+
+let is_palindrome n =
+  n = reverse_number n
+
+let is_lychrel n =
+  let rec is_lychrel_aux n iter =
+    if iter >= 50 then
+      true
+    else
+      let reversed = reverse_number n in
+      let sum = n + reversed in
+      if is_palindrome sum then
+        false
+      else
+        is_lychrel_aux sum (iter + 1)
+  in
+  is_lychrel_aux n 0
+
+let euler55 =
+    let lychrel_cnt =
+    Seq.ints 1
+    |> Seq.take 10000
+    |> Seq.filter is_lychrel
+    |> Seq.length in
+    Printf.sprintf "%d" lychrel_cnt
