@@ -54,172 +54,32 @@
 
 *)
 
-(* read file line by line *)
-(* convert to cards *)
-(* split cards into player 1 and 2 *)
-(* compare two hands *)
+
 
 open Card
-type scores = High_Card | One_Pair | Two_Pairs | Three_of_a_Kind | Straight | Flush | Full_House | Four_of_a_Kind | Straight_Flush | Royal_Flush
-
-let print_score s =
-  match s with
-  | High_Card -> Printf.printf "High Card"
-  | One_Pair -> Printf.printf "One Pair"
-  | Two_Pairs -> Printf.printf "Two Pairs"
-  | Three_of_a_Kind -> Printf.printf "Three of a Kind"
-  | Straight -> Printf.printf "Straight"
-  | Flush -> Printf.printf "Flush"
-  | Full_House -> Printf.printf "Full House"
-  | Four_of_a_Kind -> Printf.printf "Four of a Kind"
-  | Straight_Flush -> Printf.printf "Straight Flush"
-  | Royal_Flush -> Printf.printf "Royal Flush"
-
-
-let compare_score (l:scores) (r:scores) : int =
-  if l < r then -1 else if l = r then 0 else 1
-
-let find_minimum arr =
-  Array.fold_left (fun min_element current_element ->
-      if current_element < min_element then current_element else min_element
-    ) arr.(0) arr
-
-let find_maximum arr =
-  Array.fold_left (fun min_element current_element ->
-      if current_element > min_element then current_element else min_element
-    ) arr.(0) arr
-
-(** n cards of the same suit. *)
-let is_n_of_a_suit (n:int) (cards : Card.t array) : bool =
-  let _suit_counts = Array.make 4 0 in
-  Array.iter (fun (c:Card.t) -> _suit_counts.(Card.suit_to_int c.suit) <- (_suit_counts.(Card.suit_to_int c.suit) + 1) ) cards;
-  Array.exists (fun c -> c=n) _suit_counts
-
-(** All cards are of the same suit *)
-let is_flush (cards: Card.t array) =
-  is_n_of_a_suit 5 cards
-
-
-(** All cards are consecutive values *)
-let is_straight (cards : Card.t array) : bool * Card.rank =
-  let start = find_minimum cards in
-
-  let _straight =
-    Card.rank_order |> List.to_seq
-    |> Seq.drop_while (fun c -> c <> start.rank)
-    |> Seq.take 5 |> List.of_seq in
-
-  (cards |>
-   Array.for_all
-     (fun (c:Card.t) ->
-        List.exists
-          (fun (r:Card.rank) -> c.rank = r)
-          _straight) && (List.length _straight) = 5)  , cards.(4).rank
-
-
-(** Rank analysis*)
-let analyse_ranks (cards : Card.t array) : int array =
-  cards
-  |> Array.fold_left
-    (fun counts (card :Card.t) ->
-       let rank_int = Card.rank_to_int card.rank in
-       counts.(rank_int) <- counts.(rank_int) + 1;
-       counts)
-    (Array.make 13 0)
-
-let invert_compare a b  = (compare a b) * -1
-
-
-let print_array arr =
-  Array.iter (fun c -> Printf.printf "%i " c) arr
-
-let print_rank lst =
-  List.iter (fun c -> Printf.printf "%s " (Card.rank_to_string c)) lst
-
-let print_hand (cards: Card.t array) =
-  Array.iter (fun c -> Printf.printf "%s " (Card.to_string c)) cards
-
-
-let straights is_straight straight_rank is_flush a =
-  match is_straight, is_flush with
-  | true, true -> 
-    let ranks =  straight_rank in
-    Straight_Flush, [ranks]
-
-  | true, false -> 
-    let ranks =  straight_rank in
-    Straight, [ranks]
-
-  | false, true -> 
-    let ranks =  straight_rank in
-    Flush, [ranks]
-
-  | false, false ->  
-    let ranks = List.mapi (fun i e -> if e = 1 then Some (Card.int_to_rank i) else None)  (Array.to_list a) |> List.rev in
-    High_Card, List.filter_map (fun e -> e) ranks          
-
-
-let get_score _consolidated_n_tuples _is_straight _straight_rank _is_flush a =
-  match _consolidated_n_tuples with
-  | [1;1;1;1;1] -> straights _is_straight _straight_rank _is_flush a
-
-  | [4;1] -> 
-    let _ranks = List.mapi (fun i e -> if e = 4 then Some (Card.int_to_rank i) else None)  (Array.to_list a) in
-    let _ranks = List.filter_map (fun e -> e) _ranks in
-    Four_of_a_Kind, _ranks
-
-  | [3;2] -> 
-    let _3ranks = List.mapi (fun i e -> if e = 3 then Some (Card.int_to_rank i) else None)  (Array.to_list a) in
-    let _2ranks = List.mapi (fun i e -> if e = 2 then Some (Card.int_to_rank i) else None)  (Array.to_list a) in
-    Full_House, List.filter_map (fun e -> e) (List.append _3ranks  _2ranks)
-
-  | [3;1;1] -> 
-    let _ranks =  List.mapi (fun i e -> if e = 3 then Some (Card.int_to_rank i) else None)  (Array.to_list a) in
-    let _1ranks = List.mapi (fun i e -> if e = 1 then Some (Card.int_to_rank i) else None)  (Array.to_list a) |> List.rev  in
-    Three_of_a_Kind, List.filter_map (fun e -> e) (List.append _ranks  _1ranks)
-
-  | [2;2;1] -> 
-    let _ranks = List.mapi (fun i e -> if e = 2 then Some (Card.int_to_rank i) else None)  (Array.to_list a) |> List.rev in
-    let _1ranks = List.mapi (fun i e -> if e = 1 then Some (Card.int_to_rank i) else None)  (Array.to_list a) |> List.rev in
-    Two_Pairs, List.filter_map (fun e -> e) (List.append _ranks  _1ranks)
-
-  | [2;1;1;1] -> 
-    let _ranks = List.mapi (fun i e -> if e = 2 then Some (Card.int_to_rank i) else None)  (Array.to_list a) in
-    let _1ranks = List.mapi (fun i e -> if e = 1 then Some (Card.int_to_rank i) else None)  (Array.to_list a) |> List.rev  in
-    One_Pair, List.filter_map (fun e -> e) (List.append _ranks  _1ranks)
-
-  | _ -> failwith "Count of cards seems wrong!"
-
-
-let score (pl1_score, rank1) (pl2_score, rank2) : int =
-
-  if pl1_score < pl2_score then 2 else
-  if pl1_score > pl2_score then 1 else
-  if rank1 < rank2  then 2
-  else if rank1 > rank2 then 1
-  else failwith "Really"
-
+open Poker
 let play (cards1: Card.t array) (cards2: Card.t array)  :int =
 
   let calc_score (cards: Card.t array ) =
     cards |> Array.sort Card.compare;
-    let _is_flush = is_flush cards in
-    let _is_straight, _straight_rank = is_straight cards in
-    let _rank_distribution = analyse_ranks cards in
-    let _consolidated_n_tuples = Array.to_list _rank_distribution
-                                 |> List.filter (fun c -> c > 0)
-                                 |> List.sort invert_compare in
+    let is_flush' = Poker.is_flush cards in
+    let is_straight', straight_rank = Poker.is_straight cards in
+    let rank_distribution = Poker.analyse_ranks cards in
+    let consolidated_n_tuples = rank_distribution
+                                |> Array.to_list 
+                                |> List.filter (fun c -> c > 0)
+                                |> List.sort Frolib.invert_compare in
 
-    get_score _consolidated_n_tuples _is_straight _straight_rank _is_flush _rank_distribution
+    Poker.get_score consolidated_n_tuples is_straight' straight_rank is_flush' rank_distribution
   in
 
   let _player_1_score, _player_1_rank = calc_score cards1 in
   let _player_2_score, _player_2_rank = calc_score cards2 in
-  print_hand cards1; Printf.printf " -> "; print_score _player_1_score; Printf.printf " : "; print_rank _player_1_rank;
+  Poker.print_hand cards1; Printf.printf " -> "; Printf.printf "%s" (Poker.print_score _player_1_score); Printf.printf " : "; Poker.print_rank _player_1_rank;
   print_newline ();
-  print_hand cards2; Printf.printf " -> "; print_score _player_2_score; Printf.printf " : "; print_rank _player_2_rank;
+  Poker.print_hand cards2; Printf.printf " -> "; Printf.printf "%s" (Poker.print_score _player_2_score); Printf.printf " : "; Poker.print_rank _player_2_rank;
   print_newline ();
-  score (_player_1_score, _player_1_rank) (_player_2_score, _player_2_rank)                   
+  Poker.score (_player_1_score, _player_1_rank) (_player_2_score, _player_2_rank)                   
 
 
 let read_file_line_by_line filename =
@@ -241,18 +101,24 @@ let read_file_line_by_line filename =
 
 
 let process_line (line : string) =
-  let cards =  String.split_on_char ' ' line |> List.map Card.string_to_card |> List.to_seq in
+  let cards =  line
+               |> String.split_on_char ' '
+               |> List.map Card.string_to_card
+               |> List.to_seq in
   let player_1 = Array.of_seq (Seq.take 5 cards) in
   let player_2 = Array.of_seq (Seq.drop 5 cards) in
 
-  (* *************** *)
-
-  let w = (play player_1 player_2) in
-  Printf.printf "player %i won\n" w;
+  let winner = (play player_1 player_2) in
+  Printf.printf "player %i won\n" winner;
   print_newline ();
-  w
+  winner
 
 let euler54 =
+
+  (* read file line by line *)
+  (* convert to cards *)
+  (* split cards into player 1 and 2 *)
+  (* compare two hands *)
 
   let _rf = [| {Card.rank = Ten   ; suit= Hearts};
                {Card.rank = Queen ; suit= Hearts};
@@ -321,21 +187,16 @@ let euler54 =
                {Card.rank = Jack  ; suit= Diamonds} |] in
 
 
-  let _flush = [| {Card.rank = Two   ; suit= Hearts};
-                  {Card.rank = Four  ; suit= Hearts};
-                  {Card.rank = Queen  ; suit= Hearts};
-                  {Card.rank = Six  ; suit= Hearts};
-                  {Card.rank = Jack  ; suit= Hearts} |] in
+  
   (* **************************************************** *)
 
 
   let lines = read_file_line_by_line "bin/0054_poker.txt" in
 
-  let _a, _b = List.fold_left (fun (a,b) l  ->
+  let a, b = List.fold_left (fun (a,b) l  ->
       let winner = process_line l in
       if winner = 1 then (a+1, b) else (a,b+1))
       (0,0) lines in
 
-  let __b, _ = is_straight _fk in
-  Printf.sprintf "a:%i b:%i" _a _b
+  Printf.sprintf "Player 1 won:%i Player 2 won:%i" a b
 

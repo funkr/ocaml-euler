@@ -86,7 +86,7 @@ module Card = struct
     | 10 -> Queen
     | 11 -> King
     | 12 -> Ace
-    | _ -> Ace
+    | _ -> failwith "Rank has the range 0-12"
 
   let rank_to_string (r:rank) =
     match r with
@@ -98,7 +98,7 @@ module Card = struct
     | Seven -> "7"
     | Eight -> "8"
     | Nine -> "9"
-    | Ten -> "10"
+    | Ten -> "T"
     | Jack -> "J"
     | Queen -> "Q"
     | King -> "K"
@@ -130,7 +130,7 @@ module Card = struct
     | "Q" -> Queen
     | "K" -> King
     | "A" -> Ace
-    | _ -> failwith "Wrong character for Ranks 2|3|4|5|6|7|8|9|10|J|Q|K|A" in
+    | _ -> failwith "Wrong character for Ranks 2|3|4|5|6|7|8|9|T|J|Q|K|A" in
 
     let suit = match suit_str with
     | "H" -> Hearts

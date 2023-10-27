@@ -6,3 +6,5 @@ Solutions to [Project Euler](https://projecteuler.net/) problems in OCaml.
 
 ## Euler 53
 
+## Euler 54
+

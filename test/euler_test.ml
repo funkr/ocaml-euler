@@ -19,18 +19,18 @@ let digits_of_int_542333 _ =
 let suite =
   "Example Test Suite"
   >::: [
-         "is_prime_1" >:: is_prime_1;
-         "is_prime_2" >:: is_prime_2;
-         "is_prime_3" >:: is_prime_3;
-         "is_prime_4" >:: is_prime_4;
-         "is_prime_5" >:: is_prime_5;
-         "is_prime_6" >:: is_prime_6;
-         "is_prime_7" >:: is_prime_7;
-         "is_prime_8" >:: is_prime_8;
-         "is_prime_9" >:: is_prime_9;
-         "is_prime_10" >:: is_prime_10;
-         "is_prime_11" >:: is_prime_11;
-         "digits_of_int_542333" >:: digits_of_int_542333;
-       ]
+    "is_prime_1" >:: is_prime_1;
+    "is_prime_2" >:: is_prime_2;
+    "is_prime_3" >:: is_prime_3;
+    "is_prime_4" >:: is_prime_4;
+    "is_prime_5" >:: is_prime_5;
+    "is_prime_6" >:: is_prime_6;
+    "is_prime_7" >:: is_prime_7;
+    "is_prime_8" >:: is_prime_8;
+    "is_prime_9" >:: is_prime_9;
+    "is_prime_10" >:: is_prime_10;
+    "is_prime_11" >:: is_prime_11;
+    "digits_of_int_542333" >:: digits_of_int_542333;
+  ]
 
 let () = run_test_tt_main suite

@@ -7,4 +7,5 @@
 (executable
  (public_name euler)
  (name main)
- (libraries eulerlib unix seq bignum))
+ (libraries eulerlib unix seq bignum frolib)
+ (modes byte exe))
