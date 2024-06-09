@@ -84,7 +84,7 @@ let find_max_family lst =
       in
       Some max_val
 
-let euler51 =
+let euler51 () =
   match
     Seq.ints 1
     |> Seq.filter is_prime_with_duplicate_digits

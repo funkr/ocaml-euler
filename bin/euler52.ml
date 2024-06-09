@@ -29,7 +29,7 @@ let are_digits_equal (digit_list : char list list) =
 let has_same_digits_for_13456 number =
   number |> generate_digit_lists |> are_digits_equal
 
-let euler52 =
+let euler52 () =
   match
     Seq.ints 1
     |> Seq.filter has_same_digits_for_13456

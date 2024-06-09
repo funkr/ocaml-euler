@@ -69,7 +69,7 @@ let is_lychrel n =
   in
   is_lychrel_aux n 0
 
-let euler55 =
+let euler55 () =
     let lychrel_cnt =
     Seq.ints 1
     |> Seq.take 10000

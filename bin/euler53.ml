@@ -20,7 +20,7 @@ open Eulerlib
 (* Pascal triangle would be an idea - but even here are the values to big for an int eg. nCr(66,33)*)
 (* Dont calculate the value, just check if its greater than 1 million*)
 (* Use the symmetry (23/10) = (23/13) -> (n - r1) - r2 + 1 for one n value  *)
-let euler53 =
+let euler53 () =
   let break = ref false in
   let count = ref 0 in
   for n = 1 to 100 do

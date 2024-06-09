@@ -113,7 +113,7 @@ let process_line (line : string) =
   print_newline ();
   winner
 
-let euler54 =
+let euler54 () =
 
   (* read file line by line *)
   (* convert to cards *)
