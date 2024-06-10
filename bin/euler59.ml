@@ -96,11 +96,22 @@ let haba cypher_list keys =
 let decode (cypher : int list) (keys : int list) : int list =
   let take_keys = (Fn.flip Sequence.take) (List.length cypher) in
   let encryption_keys = Sequence.cycle_list_exn keys
-                  |> take_keys
-                  |> Sequence.to_list in
-  
+                        |> take_keys
+                        |> Sequence.to_list in
+
   match List.zip cypher encryption_keys with
   | Ok x -> List.map x ~f:(fun (a,b) -> a lxor b)
+  | _ -> []
+
+(* function to decode the text *)
+let decode' (cypher : int list) (keys : int list) : int list =
+  let take_keys = (Fn.flip Sequence.take) (List.length cypher) in
+  let encryption_keys = Sequence.cycle_list_exn keys
+                        |> take_keys
+                        |> Sequence.to_list in
+  
+  match List.map2 cypher encryption_keys ~f:(fun a b -> a lxor b)  with
+  | Ok x -> x
   | _ -> []
 
 (**********************************************************************)
