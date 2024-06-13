@@ -7,7 +7,7 @@ let rec permute lst =
       match suf with
       | [] -> List.rev (x :: pre) :: acc
       | hd :: tl ->
-          aux (hd :: pre) tl (List.rev_append pre (x :: hd :: tl) :: acc)
+         aux (hd :: pre) tl (List.rev_append pre (x :: hd :: tl) :: acc)
     in
     aux [] xs []
   in
@@ -22,9 +22,9 @@ let rec choose k list : int list list =
     match list with
     | [] -> []
     | x :: xs ->
-        let with_x = List.map (fun ys -> x :: ys) (choose (k - 1) xs) in
-        let without_x = choose k xs in
-        with_x @ without_x
+       let with_x = List.map (fun ys -> x :: ys) (choose (k - 1) xs) in
+       let without_x = choose k xs in
+       with_x @ without_x
 
 (* Quite costly operation *)
 let rec digits_of_int n =
@@ -176,3 +176,74 @@ module BignumPascTri : T with type t = Bignum.t = struct
 end
 
 module BinomialBignum = PT (PascalTriangleGeneric (BignumPascTri))
+
+(************************************************************)
+
+module type Tt = sig
+  type t
+
+  val zero : t
+  val one : t
+  val base : t
+  val ( * ) : t -> t -> t
+  val ( - ) : t -> t -> t
+  val ( / ) : t -> t -> t
+  val ( mod )  : t -> t -> t
+end
+
+module Expt (M : Tt) = struct
+  type tt = M.t
+  let base = M.base
+  let zero = M.zero
+  let one = M.one
+  let ( * ) = M.( * )
+  let ( - ) = M.( - )
+  let ( / ) = M.( / )
+  let ( mod ) = M.( mod )
+  
+  let expt (a:tt) (b:tt) =
+    let rec expt' (acc:tt) (a:tt) (b:tt) : tt=
+      if zero = b then  (acc * one)
+      else if one = b  then (acc * a)
+      else  expt' (acc * a) a (b - one) in
+
+    expt' one a b
+
+
+  let digits_of (n:tt) : tt list =
+    let rec aux (n:tt) (acc:tt list) =
+      if n < base then n :: acc
+      else aux (n / base) ((n mod base) :: acc)
+    in
+    aux n []
+  
+end
+
+module IntExpt : Tt with type t = int = struct
+  type t = int
+
+  let base = 10
+  let zero = 0
+  let one = 1
+  let ( * ) = Stdlib.( * )
+  let ( - ) = Stdlib.( - )
+  let ( / ) = Stdlib.( / )
+  let ( mod ) = Stdlib.( mod )
+end
+
+module ExptInt = Expt(IntExpt)
+
+
+module BigintExpt : Tt with type t = Bigint.t = struct
+  type t = Bigint.t
+
+  let base = Bigint.of_int(10)
+  let zero = Bigint.zero
+  let one = Bigint.one
+  let ( * ) = Bigint.( * )
+  let ( - ) = Bigint.( - )
+  let ( / ) = Bigint.( / )
+  let ( mod ) = Bigint.( % )
+end
+
+module ExptBigint = Expt(BigintExpt)
