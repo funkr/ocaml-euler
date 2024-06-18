@@ -52,7 +52,7 @@ let run_filter  =
 
 
 (* ************************************************** *)
-let euler57 () =
+let euler57 () : string =
   let v = run_filter in
   Printf.sprintf "%i" v
 

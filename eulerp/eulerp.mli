@@ -1,3 +1,3 @@
 open Base
 
-val euler57 : string
+val euler57 : unit -> string

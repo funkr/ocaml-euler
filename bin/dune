@@ -1,7 +1,7 @@
 (env
   (dev
     (flags (:standard
-            -w -20 
+            -w -20
             -w -27 
             -w -32 
             -w -34 
@@ -13,5 +13,5 @@
 (executable
  (public_name euler)
  (name main)
- (libraries eulerlib unix seq bignum frolib euler57)
+ (libraries eulerlib unix seq bignum frolib eulerp)
  (modes byte exe))

@@ -1,5 +1,5 @@
 (library
- (name euler57)
+ (name eulerp)
  (libraries base stdio bignum)
  (inline_tests)
  (preprocess (pps ppx_jane)))
@@ -7,7 +7,7 @@
 (env
   (dev
     (flags (:standard
-            -w -20 
+            -w -20
             -w -27 
             -w -32 
             -w -34 
