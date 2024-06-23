@@ -22,7 +22,8 @@ let () =
     | 55 -> euler55 ()
     | 56 -> euler56 ()
     | 57 -> euler57 ()
-    | 59 -> euler59 () 
+    | 59 -> euler59 ()
+    | 60 -> euler60 () 
     | _ -> failwith "not (yet) programmed!"
   in
 
