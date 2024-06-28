@@ -9,7 +9,11 @@
 (* The idea is to iterate through prime numbers.
    Every prime number (except 5) is starting element of 5-tuple which holds the
    property that every combination of two elements is a prime number:
-   (3,7) -> 37, 73*)
+   (3,7) -> 37, 73
+
+   Has a terrible runtime*)
+
+(* Find in primes mirroring primes and store them as mirror candidates*)
 
 open Base
 
@@ -47,7 +51,7 @@ let get_prime n =
 let is_mirror_prime p1 p2 =
   let a, b =
     Int.of_string (Printf.sprintf "%i%i" p1 p2),
-    Int.of_string (Printf.sprintf "%i%i" p2 p1) 
+    Int.of_string (Printf.sprintf "%i%i" p2 p1)
   in
   is_prime a && is_prime b
 
@@ -86,7 +90,7 @@ let minimum_stop_sum partial_5_tuples curr_prime =
 
 let max_sol_tuple tpl =
   assert(List.length tpl > 0);
-  match List.map  ~f:(fun x -> List.length x) tpl 
+  match List.map  ~f:(fun x -> List.length x) tpl
         |> List.reduce ~f:(fun acc x -> max acc x) with
   | Some x -> x
   | None -> -1
@@ -100,7 +104,7 @@ let state = Searching
 
 let a_list_to_string to_string lst sep =
   List.map ~f:to_string lst
-  |> String.concat ~sep:sep 
+  |> String.concat ~sep:sep
 
 (** The search terminates when there is at least one 5-tuple
     and all other incomplete tuple have a higher stop sum as
@@ -116,15 +120,27 @@ let main (): int  =
     else
     if List.length s > 0 && (minimum_stop_sum s p) = (minimum_stop_sum r' p) then
       minimum_stop_sum s p
-    else      
+    else
       search r' (Sequence.drop primes' 1)
 
   in
   search r_sets (Sequence.drop primes 4)
 
+let slice_number n =
+  let split_at str n =
+    let len = String.length str in
+    if n < 0 || n > len then invalid_arg "split_at";
+    (Int.of_string (String.sub str ~pos:0 ~len:n)),
+    (Int.of_string (String.sub str ~pos:n ~len:(len - n)))
+  in
+
+  let str = (Printf.sprintf "%i" n) in
+  let split_at' = split_at str in
+  let splits = List.map ~f:split_at' (List.range 1 (String.length str)) in
+  splits
 
 (********************************************************************************)
-let euler60 () =  
+let euler60 () =
   let result = main () in
   Printf.sprintf "%i" result
 
@@ -168,3 +184,8 @@ let%test "Push a new prime to the result set and mirror it" =
 
 let%test "Print a list of integers" =
   String.equal  "1;2;3;4" (a_list_to_string Int.to_string [1;2;3;4] ";")
+
+let%test "Create mirror tuples" =
+  let a,b = List.nth_exn (slice_number 123456) 4 in
+  Stdio.printf "Mirror: %i:%i\n" a b ;
+  ( = ) 5 (List.length (slice_number 123456))
