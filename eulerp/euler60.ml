@@ -44,16 +44,16 @@ let primes =
   Sequence.filter ~f:is_prime
     (Sequence.unfold ~init:0 ~f:(fun i -> Some (i, i + 1)))
 
-let get_prime n =
-  assert (n > 0) ;
-  Sequence.hd_exn (Sequence.drop primes (n - 1))
-
 let is_mirror_prime p1 p2 =
   let a, b =
     Int.of_string (Printf.sprintf "%i%i" p1 p2),
     Int.of_string (Printf.sprintf "%i%i" p2 p1)
   in
   is_prime a && is_prime b
+
+let get_prime n =
+  assert (n > 0) ;
+  Sequence.hd_exn (Sequence.drop primes (n - 1))
 
 let try_mirroring mirror_primes p =
   if List.for_all ~f:(fun x -> is_mirror_prime x p) mirror_primes then
@@ -103,6 +103,7 @@ let r_sets = [[7;3]; [7]; [3]]
 let state = Searching
 
 let a_list_to_string to_string lst sep =
+  assert (not (List.is_empty lst));
   List.map ~f:to_string lst
   |> String.concat ~sep:sep
 
@@ -126,27 +127,134 @@ let main (): int  =
   in
   search r_sets (Sequence.drop primes 4)
 
+
 let slice_number n =
-  let split_at str n =
-    let len = String.length str in
+  let str = Printf.sprintf "%i" n in
+  let len = String.length str in
+
+  let split_at str n : int list option  =
     if n < 0 || n > len then invalid_arg "split_at";
-    (Int.of_string (String.sub str ~pos:0 ~len:n)),
-    (Int.of_string (String.sub str ~pos:n ~len:(len - n)))
+    let a,b = (Int.of_string (String.sub str ~pos:0 ~len:n)),
+              (Int.of_string (String.sub str ~pos:n ~len:(len - n))) in
+    if is_prime a && is_prime b && (is_mirror_prime a b) then
+      if a < b then
+        Some( [a; b] )
+      else
+        Some( [b; a] )
+    else
+      None
   in
 
-  let str = (Printf.sprintf "%i" n) in
-  let split_at' = split_at str in
-  let splits = List.map ~f:split_at' (List.range 1 (String.length str)) in
-  splits
+  let res = List.filter_map ~f:(split_at str) (List.range 1 (String.length str)) in
+  if List.is_empty res then None else Some res
+
+let merge_prime_tuple result_v pt =
+
+  let comp' res_el pt =
+    match List.find res_el ~f:(fun x -> x = List.hd_exn pt),
+          List.find res_el ~f:(fun x -> x = List.nth_exn pt 1) with
+    | None, None -> Some res_el
+    | Some a, None -> Some (try_mirroring res_el a)
+    | None, Some b -> Some (try_mirroring res_el b)
+    | Some a, Some b -> None
+  in
+
+  List.filter_map ~f:(fun x -> comp' x pt)
+
+
+let print_list lst =
+  List.map ~f:(fun x -> Stdio.printf "%s\n" (a_list_to_string Int.to_string x ";")) lst
+
+module IntList = struct
+  type t = int list
+  let compare = [%compare: int list]
+  let hash = Hashtbl.hash
+  let sexp_of_t = [%sexp_of: int list]
+end
+
+let create_mirror_prime_checker () =
+  let table = ref (Hashtbl.create (module IntList)) in
+  let is_new_mirror_prime n =
+    match Hashtbl.add !table ~key:n ~data:() with
+    | `Ok -> true
+    | `Duplicate -> false
+  in
+  let reset_table () =
+    table := Hashtbl.create (module IntList)
+  in
+  (is_new_mirror_prime, reset_table)
+
+let primes' =
+  (Sequence.filter_map ~f:slice_number
+     (Sequence.filter ~f:is_prime
+        (Sequence.unfold ~init:0 ~f:(fun i -> Some (i, i + 1)))))
+
+let is_new_mirror_prime, reset_mirror_prime = create_mirror_prime_checker ()
+
+let rec get_next p =
+  match (Sequence.next p) with
+  | Some x -> let a,b = x in
+    let a' = (List.filter ~f:is_new_mirror_prime a) in
+    if List.is_empty a' then get_next b else a',b
+  | None -> [], p
+
+let take_n p n =
+  (* Collect n candidates *)
+  let rec take' acc p n =
+    match n with
+    | 0 -> acc
+    | _ -> let a,b = get_next p in
+      take' (List.append acc a) b (n-1)
+  in
+  take' [] p n
+
+(* Comparison function for int lists *)
+let compare_int_lists l1 l2 =
+  let rec compare_aux l1 l2 =
+    match l1, l2 with
+    | [], [] -> 0
+    | [], _ -> -1
+    | _, [] -> 1
+    | x1 :: xs1, x2 :: xs2 ->
+        let c = Int.compare x1 x2 in
+        if c <> 0 then c else compare_aux xs1 xs2
+  in
+  compare_aux l1 l2
 
 (********************************************************************************)
 let euler60 () =
   let result = main () in
   Printf.sprintf "%i" result
 
+let is_in_list' lst el =
+  match (List.find ~f:(fun y -> Poly.( = ) el y) lst) with
+  | Some _ -> true
+  | None -> false
+
+let is_in_list lst el =
+  match (List.find ~f:(fun y -> Poly.( = ) el y) lst) with
+  | Some _ -> lst
+  | None -> el::lst
 (**************************************************)
-let%test "Check test is working" =
-  0 = 0
+let%test "Get 100 Candiates" =
+  let a = take_n primes' 1000 in
+  Stdio.printf "Get10: %i\n" (List.length a);
+  let _ = print_list (List.sort ~compare:compare_int_lists a) in
+  ( = ) (List.length a) 1028
+
+let%test "Get 3 Candiates" =
+  let a = take_n primes' 3 in
+  Stdio.printf "Get3: %i" (List.length a);
+  ( = ) (List.length a) 3
+
+
+let%test "Calculate candidates" =
+  reset_mirror_prime ();
+  let _y,p = get_next primes'  in
+  let _y,p = get_next p  in
+  let _y,p = get_next p  in
+  (* let _ = print_list _y in*)
+  Poly.( = ) [[3;17]] _y
 
 let%test "Get the 5.th primes" =
   11 = get_prime 5
@@ -174,18 +282,42 @@ let%test "Calc the limit for a solution (5-tuple)" =
 
 let%test "Push a new prime to the result set and mirror it" =
   let r = mirror [[7; 3]; [11]; [7]; [3];] 109 in
-  Stdio.printf "%i" (List.nth_exn (List.nth_exn r 2) 0);
+  (*Stdio.printf "%i" (List.nth_exn (List.nth_exn r 2) 0);*)
   ( = ) 5 (List.length r)
 
 let%test "Push a new prime to the result set and mirror it" =
   let r = mirror [[109]; [109;7; 3]; [11]; [109;7]; [109;3];] 1009 in
-  Stdio.printf "%i" (List.nth_exn (List.nth_exn r 2) 0);
+  (*Stdio.printf "%i\n" (List.nth_exn (List.nth_exn r 2) 0);*)
   ( = ) 6 (List.length r)
 
 let%test "Print a list of integers" =
   String.equal  "1;2;3;4" (a_list_to_string Int.to_string [1;2;3;4] ";")
 
-let%test "Create mirror tuples" =
-  let a,b = List.nth_exn (slice_number 123456) 4 in
-  Stdio.printf "Mirror: %i:%i\n" a b ;
-  ( = ) 5 (List.length (slice_number 123456))
+let%test "Create mirror prime tuples" =
+  let q = (slice_number 673109)  in
+  (*let _ = match q with
+    | Some x -> Stdio.printf "C:%i\n" (List.length x)
+    | None -> Stdio.printf "C:nix\n" in*)
+  let a' = List.nth_exn (Option.value q  ~default:[[888;88]]) 0 in
+  let a,b = List.nth_exn a' 0, List.nth_exn a' 1  in
+  Stdio.printf "Mirror: %i:%i %i\n" a b  (List.length a');
+  ( = ) 2 (List.length a')
+
+let%test "already seen" =
+  let is_new_mirror_prime, _ = create_mirror_prime_checker () in
+  (is_new_mirror_prime [1;2]) && (* false *)
+  (is_new_mirror_prime [2]) && (* false *)
+  not (is_new_mirror_prime [1;2]) && (* true *)
+  (is_new_mirror_prime [3]) && (* false *)
+  not (is_new_mirror_prime [2]) (* true *)
+
+let%test "already seen 5" =
+  let is_new_mirror_prime, _ = create_mirror_prime_checker () in
+  (is_new_mirror_prime [1;2]) && (* false *)
+  not (is_new_mirror_prime [1;2]) && (* true *)
+  let is_new_mirror_prime, _ = create_mirror_prime_checker () in
+  (is_new_mirror_prime [1;2])  (* true *)
+
+
+let%test "jkjkjk" =
+  ( = ) (List.length (is_in_list [[8; 9]; [1; 2]; [3; 4]; [5; 6]] [8; 9])) 4
